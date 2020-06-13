@@ -32,10 +32,6 @@ namespace AppDataAnaliticsTool
         static void Main(string[] args)
         {
 
-            // ローカルのマスターデータを取得する
-
-            // マスターデータに存在しないアプリは、新しく出たものなのでデータ情報として格納して通知をする
-
             string[] dataCategoryNameList = new string[] { 
                 "top-grossing-iphone/6014.html",
                 "top-paid-iphone/6014.html"
@@ -68,7 +64,7 @@ namespace AppDataAnaliticsTool
                         iphoneNewMasters = JsonConvert.DeserializeObject<List<AppRankingIphoneMaster>>(result);
                         foreach (AppRankingIphoneMaster iphoneNewMaster in iphoneNewMasters)
                         {
-                            Console.WriteLine(iphoneNewMaster.Name + " 読み込み結果");
+                            Console.WriteLine(String.Format("{0} 読み込み結果", iphoneNewMaster.Name));
                             iphoneMasterIds.Add(iphoneNewMaster.Id);
                         }
 
@@ -81,7 +77,7 @@ namespace AppDataAnaliticsTool
                     // タイトル名と、順位を取得する
                     var rank = i + 1;
                     var titleName = elements[i].FindElements(By.TagName("small"))[0].Text;
-                    Console.WriteLine("順位" + rank.ToString() + " タイトル：" + titleName);
+                    Console.WriteLine("順位：{0} タイトル：{1}", rank.ToString() , titleName);
                     var aHrefObjects = elements[i].FindElements(By.TagName("a"));
                     if (aHrefObjects.Count == 0)
                     {
@@ -90,7 +86,7 @@ namespace AppDataAnaliticsTool
                     // サイト内におけるアプリIdを取得する　人気のあるカテゴリーやランキング集計で利用する
                     var hrefText = aHrefObjects[0].GetAttribute("href");
                     var appId = hrefText.Replace("http://topappranking300.appios.net/apps", "").Replace("/", "");
-                    Console.WriteLine("appId:" + appId);
+                    Console.WriteLine(string.Format( "appId:{0}", appId));
 
                     // 順位とidがセットで取得できていたら集計用元リストに格納をする
                     AppRankingIphone appRankingIphone = new AppRankingIphone();
@@ -116,18 +112,17 @@ namespace AppDataAnaliticsTool
 
                 string category = dataCategoryName.Split('/')[0];
                 Console.WriteLine(String.Format("category name : {0} output count : {1} ", category, appRankingIphones.Count.ToString()));
-                // 実行した年月の集計情報として保存をする
                 DateTime dt = DateTime.Now;
                 string dtFormat = dt.ToString("yyyy-MM-dd");
-                using (StreamWriter file = File.CreateText(@"c:\develop\\analitics\\iphone_free_ranking\\" + category + "_data_" + dtFormat + ".json"))
+                string fileName = String.Format(@"c:\develop\\analitics\\iphone_free_ranking\\{0}_data_{1}.json", category, dtFormat);
+                using (StreamWriter file = File.CreateText(fileName))
                 {
                     JsonSerializer serializer = new JsonSerializer();
                     var jsonResult = JsonConvert.SerializeObject(appRankingIphones, Formatting.Indented);
                     Console.Write(jsonResult);
                     file.Write(jsonResult);
                 }
-                // serialize JSON directly to a file
-                using (StreamWriter file = File.CreateText(@"c:\develop\\analitics\\master.json"))
+                using (StreamWriter file = File.CreateText(filePath))
                 {
                     JsonSerializer serializer = new JsonSerializer();
                     var jsonResult = JsonConvert.SerializeObject(iphoneNewMasters, Formatting.Indented);
